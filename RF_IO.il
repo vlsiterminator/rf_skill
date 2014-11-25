@@ -2,10 +2,11 @@
 ;; RF Generator V0.1
 ;; Ningxi Liu
 ;; Module: RF_IO
-;; 2014/11/12
+;; 2014/11/22
 ;; V0.1 Modification:
 ;; 1) Added a 64 bit row decoder
 ;; 2) Added DFF for DIN<Wordsize-1:0>
+;; 3) Deleted CLK buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Load the file containing the basic schematic procedures
 load("./skill/ece432Schematic.il")
@@ -35,7 +36,7 @@ procedure(RF(libName cellName NROW Wordsize addr_row)
 	
     ;; Create top level pins
 	;; Create input pins
-    foreach(pinName list("VDD" "VSS" "CLK_IN" "DEC_EN" sprintf(nil "DIN<%L:0>" Wordsize-1) sprintf(nil "ADDR<%L:0>" addr_row-1) sprintf(nil "DBMOUT<%L:0>" Wordsize-1))
+    foreach(pinName list("VDD" "VSS" "CLK" "DEC_EN" sprintf(nil "DIN<%L:0>" Wordsize-1) sprintf(nil "ADDR<%L:0>" addr_row-1) sprintf(nil "DBMOUT<%L:0>" Wordsize-1))
       pin=ece432SchematicCreatePin(cvid pinName "input" x:y "R0")
       y=y+0.5
     )
@@ -45,59 +46,7 @@ procedure(RF(libName cellName NROW Wordsize addr_row)
 	y=y+0.5
 	)
 
-;; To create input buffer for stimuli
-    y=y+1
-    cnt=1
-    foreach(inputsignal list("CLK")
-	
-	inst = ece432SchematicCreateInst(
-	           	   ;; Cell view id
-			   cvid 
-			   
-			   ;; Name of the library containing the bitcell
-			   libName
-			   
-	           	   ;; The bitcell name  
-              		   "inv_chain"  
-			   
-			   ;; Cell view type, always be "symbol" here
-			   "symbol" 
-			   
-			   ;; Instance name
-	           sprintf(nil "Buffer_%d" cnt) 
-			   
-			   ;; The following list defines the connections of the left side pins 
-			   ;; in the symbol view; For our bitcell, 'VDD' 'VSS' 'BL' are pins on the left.
-			   ;; The inverter pin 'WL' is connected with the net WL.
-			   ;; If there are multiple pins on the left side, you can use the below way to define.
-			   ;;    list(list("in1" in1net)
-			   ;;         list("in2" in2net))
-			   ;; If there is no pin on the left side, this parameter should be 'nil'.
-	           list(list("VDD" "VDD")
-			list("VSS" "VSS")
-			list("IN" sprintf(nil "%s_IN" inputsignal)) )   
-			   
-			   ;; The following list defines the connections of the right side pins 
-			   ;; in the symbol view; For our bitcell, 'BLB' is the only pin on the right.
-	  		   list(list("OUT" inputsignal ))  
-			   
-			   ;; The following list defines the connections of the top side pins 
-			   ;; in the symbol view; For our inverter, 'VDD' is the only pin on the top.
-      		   nil
-			   
-			   ;; The following list defines the connections of the bottom side pins 
-			   ;; in the symbol view; For our bitcell, this parameter should be 'nil'.
-	           nil
-			   
-			   ;; Location of the instance
-                   x:y 
-			   
-			   ;; Rotation of the instance, such as "R0", "R90", "R180", "R270", "MX", "MY", ...
-		   "R0"
-			 ) ;; end inst
-	y=y+1
-	cnt=cnt+1
-	) ;;end foreach inputsignal
+
 
 ;; Create Din out DFF
     x=0
